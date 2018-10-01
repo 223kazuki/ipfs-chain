@@ -1,0 +1,13 @@
+{:ipfs-chain.module/ipfs
+ {:protocol "https"
+  :host "ipfs.infura.io"
+  :port 5001}
+
+ :ipfs-chain.module/router
+ ["/" {""       :home
+       "about"  :about}]
+
+ :ipfs-chain.module/app
+ {:mount-point-id "app"
+  :routes #ig/ref :ipfs-chain.module/router
+  :ipfs #ig/ref :ipfs-chain.module/ipfs}}
