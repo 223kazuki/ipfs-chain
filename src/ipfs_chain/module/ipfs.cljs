@@ -6,6 +6,7 @@
             [cljsjs.ipfs]
             [cljsjs.buffer]))
 
+(def buffer-from (aget js/buffer "Buffer" "from"))
 (defn- upload-data [ipfs buffer uploaded-handler]
   (.then (js-invoke ipfs "add" buffer)
          (fn [response]
@@ -40,10 +41,10 @@
    k [re-frame/trim-v]
    (fn-traced
     [{:keys [:db]} _]
-    (println "!!!!!!!!!!")
     (let [ipfs (::ipfs db)
-          buffer (js-invoke js/Buffer "from" "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><title>Document</title></head><body>Test!!!</body></html>")]
-      (upload-data ipfs buffer #(println "!!!!!!!!!" %)))
+          buffer (buffer-from "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><title>Document</title></head><body>Test!!!</body></html>")]
+      (upload-data ipfs buffer #(set! js/location.href
+                                      (str "https://ipfs.infura.io/ipfs/" %))))
     {:db db})))
 
 ;; Init
