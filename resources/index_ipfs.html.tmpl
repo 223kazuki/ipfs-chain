@@ -3,15 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <title>IPFS Chain</title>
-    <meta name="root-ipfs-hash" content="">
+    <meta name="root-ipfs-hash" content="{{ROOT_IPFS_HASH}}">
     <meta name="previous-ipfs-hash" content="">
     <meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no">
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.13/semantic.min.css"></link>
-    <link rel="stylesheet" href="/css/site.css"></link>
+    <link rel="stylesheet" href="/ipfs/{{ROOT_IPFS_HASH}}/css/site.css"></link>
 </head>
 <body>
     <div id="app"/>
-    <script src="/js/compiled/app.js"></script>
+    <script src="/ipfs/{{ROOT_IPFS_HASH}}/js/compiled/app.js"></script>
     <script>ipfs_chain.core.init();</script>
 </body>
 </html>
+
+

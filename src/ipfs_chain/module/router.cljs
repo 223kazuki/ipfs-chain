@@ -70,8 +70,9 @@
 (defmethod ig/init-key :ipfs-chain.module/router
   [k routes]
   (js/console.log (str "Initializing " k))
-  (let [subs (->> reg-sub methods (map key))
-        events (->> reg-event methods (map key))
+  (let [[subs events] (->> [reg-sub reg-event]
+                           (map methods)
+                           (map #(map key %)))
         router (setup-router routes)]
     (->> subs (map reg-sub) doall)
     (->> events (map reg-event) doall)

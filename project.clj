@@ -13,10 +13,9 @@
                  ;; Router
                  [kibu/pushy "0.3.8"]
                  [bidi "2.1.3"]
-                 ;; Timestamp
+                 ;; IPFS
                  [cljsjs/ipfs-api "18.1.1-0"]
-                 [cljsjs/buffer "5.1.0-1"]
-                 [cljsjs/moment "2.22.0-0"]]
+                 [cljsjs/buffer "5.1.0-1"]]
   :plugins [[lein-cljsbuild "1.1.7"]]
   :clean-targets ^{:protect false} ["resources/public/js/compiled" "target"
                                     "test/js"]
@@ -58,14 +57,14 @@
                     :external-config      {:devtools/config {:features-to-install :all}}}}
     {:id "min"
      :source-paths ["src"]
-     :compiler     {:main            re-integrant-app.core
+     :compiler     {:main            ipfs-chain.core
                     :output-to       "resources/public/js/compiled/app.js"
                     :optimizations   :advanced
                     :closure-defines {goog.DEBUG false}
                     :pretty-print    false}}
     {:id "test"
      :source-paths ["src" "test"]
-     :compiler     {:main          re-integrant-app.runner
+     :compiler     {:main          ipfs-chain.runner
                     :output-to     "resources/public/js/compiled/test.js"
                     :output-dir    "resources/public/js/compiled/test/out"
                     :optimizations :none}}]})

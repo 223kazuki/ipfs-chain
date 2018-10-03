@@ -2,15 +2,10 @@
   (:require [integrant.core :as ig]
             [re-frame.core :as re-frame]
             [day8.re-frame.tracing :refer-macros [fn-traced]]
-            [cljsjs.moment]
             [cljsjs.ipfs]
             [cljsjs.buffer]))
 
 (def buffer-from (aget js/buffer "Buffer" "from"))
-(defn- upload-data [ipfs buffer uploaded-handler]
-  (.then (js-invoke ipfs "add" buffer)
-         (fn [response]
-           (uploaded-handler (aget (first response) "hash")))))
 
 ;; Initial DB
 (def initial-db {})
@@ -36,33 +31,49 @@
     (->> db
          (filter #(not= (namespace (key %)) (namespace ::x)))
          (into {})))))
-(defmethod reg-event ::upload [k]
+(defmethod reg-event ::upload-data [k]
   (re-frame/reg-event-fx
    k [re-frame/trim-v]
    (fn-traced
-    [{:keys [:db]} _]
-    (let [ipfs (::ipfs db)
-          buffer (buffer-from "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><title>Document</title></head><body>Test!!!</body></html>")]
-      (upload-data ipfs buffer #(set! js/location.href
-                                      (str "https://ipfs.infura.io/ipfs/" %))))
-    {:db db})))
+    [{:keys [:db]} [data on-success on-error]]
+    {:db db
+     ::add {:buffer (buffer-from data)
+            :on-success on-success
+            :on-error on-error}})))
+
+;; Effects
+(defmulti reg-fx identity)
+(defmethod reg-fx ::add [k ipfs]
+  (re-frame/reg-fx
+   k (fn [{:keys [:buffer :on-success :on-error] :as params}]
+       (.. (js-invoke ipfs "add" buffer)
+           (then (fn [res]
+                   (let [hash (aget (first res) "hash")]
+                     (when-not (empty? on-success)
+                       (re-frame/dispatch (vec (conj on-success hash)))))))
+           (catch (fn [err]
+                    (when-not (empty? on-error)
+                      (re-frame/dispatch (vec (conj on-error err))))))))))
 
 ;; Init
 (defmethod ig/init-key :ipfs-chain.module/ipfs
   [k opts]
   (js/console.log (str "Initializing " k))
-  (let [subs (->> reg-sub methods (map key))
-        events (->> reg-event methods (map key))
+  (let [[subs events effects] (->> [reg-sub reg-event reg-fx]
+                                   (map methods)
+                                   (map #(map key %)))
         ipfs (js/IpfsApi (clj->js opts))]
     (->> subs (map reg-sub) doall)
     (->> events (map reg-event) doall)
+    (->> effects (map #(reg-fx % ipfs)) doall)
     (re-frame/dispatch-sync [::init ipfs])
-    {:subs subs :events events}))
+    {:subs subs :events events :effects effects}))
 
 ;; Halt
 (defmethod ig/halt-key! :ipfs-chain.module/ipfs
-  [k {:keys [:subs :events]}]
+  [k {:keys [:subs :events :effects]}]
   (js/console.log (str "Halting " k))
   (re-frame/dispatch-sync [::halt])
   (->> subs (map re-frame/clear-sub) doall)
-  (->> events (map re-frame/clear-event) doall))
+  (->> events (map re-frame/clear-event) doall)
+  (->> effects (map re-frame/clear-fx) doall))
