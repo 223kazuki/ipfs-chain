@@ -3,7 +3,8 @@
             [reagent.core :as reagent]
             [cljsjs.semantic-ui-react]
             [soda-ash.core :as sa]
-            [ipfs-chain.module.ipfs :as ipfs]))
+            [ipfs-chain.module.ipfs :as ipfs]
+            [cljsjs.moment]))
 
 (defn- get-meta-data [name]
   (.. js/document
@@ -16,11 +17,8 @@
                               (clojure.string/split #"/")
                               last)
         content-root (if-not (empty? root-ipfs-hash)
-                       (str "http://localhost:8080/ipfs/" root-ipfs-hash)
+                       (str "https://ipfs.infura.io/ipfs/" root-ipfs-hash)
                        "http://localhost:3449")]
-    (js/console.log root-ipfs-hash)
-    (js/console.log current-ipfs-hash)
-    (js/console.log content-root)
     (str
      "<!DOCTYPE html>"
      "<html lang=\"en\">"
@@ -29,6 +27,7 @@
      "    <title>IPFS Chain</title>"
      "    <meta name=\"root-ipfs-hash\" content=\"" root-ipfs-hash "\">"
      "    <meta name=\"previous-ipfs-hash\" content=\"" current-ipfs-hash "\">"
+     "    <meta name=\"generated\" content=\"" (js/moment) "\">"
      "    <meta name=\"viewport\""
      "          content=\"width=device-width,initial-scale=1,shrink-to-fit=no\">"
      "    <link rel=\"stylesheet\" href="
@@ -38,23 +37,28 @@
      "<body>"
      "    <div id=\"app\"/>"
      "    <script src=\"" content-root "/js/compiled/app.js\"></script>"
-     "    <script>const data=" "</script>"
      "    <script>ipfs_chain.core.init();</script>"
      "</body>"
      "</html>")))
 
 (defn home-panel []
-  (let [previous-hash (get-meta-data "previous-ipfs-hash")]
+  (let [previous-hash (get-meta-data "previous-ipfs-hash")
+        generated (get-meta-data "generated")]
     [:div
+     [sa/Segment
+      [:h2 "Current Block"]
+      (if (empty? generated)
+        "Root Block"
+        (str "Generated at " generated))]
      [sa/Button {:on-click
                  #(let [data (generate-html)]
                     (re-frame/dispatch [::ipfs/upload-data data
                                         [:ipfs-chain.module.app/chain-on-ipfs]
                                         [:ipfs-chain.module.app/throw-error]]))}
-      "Generate Block"]
+      "Generate New Block"]
      (when-not (empty? previous-hash)
        [sa/Segment
-        [:h1 "Previous block"]
+        [:h2 "Previous Block"]
         [:a {:href (str "https://ipfs.infura.io/ipfs/" previous-hash)}
          previous-hash]])]))
 

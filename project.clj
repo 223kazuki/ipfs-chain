@@ -8,7 +8,8 @@
                  [integrant "0.6.3"]
                  [soda-ash "0.78.2" :exclusions [[cljsjs/react]]]
                  [cljsjs/ipfs-api "18.1.1-0"]
-                 [cljsjs/buffer "5.1.0-1"]]
+                 [cljsjs/buffer "5.1.0-1"]
+                 [cljsjs/moment "2.22.2-1"]]
   :plugins [[lein-cljsbuild "1.1.7"]]
   :clean-targets ^{:protect false} ["resources/public/js/compiled" "target"
                                     "test/js"]
