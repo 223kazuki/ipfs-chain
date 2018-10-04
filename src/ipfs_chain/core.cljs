@@ -1,7 +1,6 @@
 (ns ipfs-chain.core
   (:require [integrant.core :as ig]
             [ipfs-chain.module.app]
-            [ipfs-chain.module.router]
             [ipfs-chain.module.ipfs])
   (:require-macros [ipfs-chain.utils :refer [read-config]]))
 

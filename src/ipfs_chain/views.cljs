@@ -2,9 +2,7 @@
   (:require [re-frame.core :as re-frame]
             [reagent.core :as reagent]
             [cljsjs.semantic-ui-react]
-            [cljsjs.react-transition-group]
             [soda-ash.core :as sa]
-            [ipfs-chain.module.router :as router]
             [ipfs-chain.module.ipfs :as ipfs]))
 
 (defn- get-meta-data [name]
@@ -18,7 +16,7 @@
                               (clojure.string/split #"/")
                               last)
         content-root (if-not (empty? root-ipfs-hash)
-                       (str "https://ipfs.infura.io/ipfs/" root-ipfs-hash)
+                       (str "http://localhost:8080/ipfs/" root-ipfs-hash)
                        "http://localhost:3449")]
     (js/console.log root-ipfs-hash)
     (js/console.log current-ipfs-hash)
@@ -40,6 +38,7 @@
      "<body>"
      "    <div id=\"app\"/>"
      "    <script src=\"" content-root "/js/compiled/app.js\"></script>"
+     "    <script>const data=" "</script>"
      "    <script>ipfs_chain.core.init();</script>"
      "</body>"
      "</html>")))
@@ -47,48 +46,24 @@
 (defn home-panel []
   (let [previous-hash (get-meta-data "previous-ipfs-hash")]
     [:div
-     [:h1 "Home"]
      [sa/Button {:on-click
                  #(let [data (generate-html)]
                     (re-frame/dispatch [::ipfs/upload-data data
                                         [:ipfs-chain.module.app/chain-on-ipfs]
                                         [:ipfs-chain.module.app/throw-error]]))}
-      "Upload"]
+      "Generate Block"]
      (when-not (empty? previous-hash)
        [sa/Segment
-        [:h1 "Previous chain"]
+        [:h1 "Previous block"]
         [:a {:href (str "https://ipfs.infura.io/ipfs/" previous-hash)}
          previous-hash]])]))
 
-(defn about-panel []
-  (fn [] [:div "About"]))
-
-(defn none-panel []
-  [:div])
-
-(defmulti  panels identity)
-(defmethod panels :home-panel [] #'home-panel)
-(defmethod panels :about-panel [] #'about-panel)
-(defmethod panels :none [] #'none-panel)
-
-(def transition-group
-  (reagent/adapt-react-class js/ReactTransitionGroup.TransitionGroup))
-(def css-transition
-  (reagent/adapt-react-class js/ReactTransitionGroup.CSSTransition))
-
 (defn app-container []
-  (let [title (re-frame/subscribe [:ipfs-chain.module.app/title])
-        active-panel (re-frame/subscribe [::router/active-panel])]
-    (fn []
+  (fn []
+    [:div
+     [sa/Menu {:fixed "top" :inverted true}
+      [sa/Container
+       [sa/MenuItem {:as "span" :header true} "IPFS Chain"]]]
+     [sa/Container {:className "mainContainer" :style {:margin-top "7em"}}
       [:div
-       [sa/Menu {:fixed "top" :inverted true}
-        [sa/Container
-         [sa/MenuItem {:as "span" :header true} @title]
-         [sa/MenuItem {:as "a" :href "/"} "Home"]
-         [sa/MenuItem {:as "a" :href "/about"} "About"]]]
-       [sa/Container {:className "mainContainer" :style {:margin-top "7em"}}
-        (let [panel @active-panel]
-          [transition-group
-           [css-transition {:key panel
-                            :classNames "pageChange" :timeout 500 :className "transition"}
-            [(panels panel)]]])]])))
+       [home-panel]]]]))
