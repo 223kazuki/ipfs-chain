@@ -1,6 +1,8 @@
-# re-integrant-app
+# ipfs-chain
 
-An SPA using [re-frame](https://github.com/Day8/re-frame) and [integrant](https://github.com/weavejester/integrant).
+A IPFS SPA using [re-integrant pattern](https://223kazuki.github.io/re-integrant-app.html).
+
+Hosted at https://ipfs.infura.io/ipfs/Qmbqap913AY77BNX2aXGUpU7Q3Vmguu85KZQ3q6KTzGkXd
 
 ## Development Mode:
 
